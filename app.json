@@ -1,0 +1,6 @@
+{
+  "name": "Watson webhook demonstration",
+  "description": "watson webhook demonstration",
+  "repository": "https://github.com/andersonsilveira/api-cpqd-hackaton-itbot",
+  "keywords": ["watson", "natural language"]
+}
