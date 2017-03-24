@@ -25,14 +25,6 @@ public class ControllerConversationBot {
 		System.out.println("wbehookResponse "+webhookResponse);
 		return webhookResponse;
 	}
-	    
-	    
-	public static void main(String[] args) {
-		new ControllerConversationBot().conversation("Ola");
-	}
-	
-	
-
 
 	  
 }
