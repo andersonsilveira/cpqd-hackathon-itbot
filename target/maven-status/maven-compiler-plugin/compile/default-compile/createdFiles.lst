@@ -1,5 +1,0 @@
-br\com\hackaton\itbot\WebConfiguration.class
-br\com\hackaton\jira\JiraService.class
-br\com\hackaton\itbot\ControllerConversationBot.class
-br\com\hackaton\jira\JiraService$1.class
-br\com\hackaton\itbot\WebhookResponse.class
