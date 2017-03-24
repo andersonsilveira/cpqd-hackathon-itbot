@@ -2,8 +2,7 @@ package br.com.hackaton.itbot;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-t
-quit
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,30 +37,11 @@ public class ControllerConversationBot {
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode rootNode;
 		try {
-<<<<<<< HEAD
-		    System.out.println(intentContent);
-		    String split = intentContent.substring(5,intentContent.length()-2);
-		    String jsonStr = split.replaceAll("\\\\", "");
-		    System.out.println(jsonStr);
-		    rootNode = objectMapper.readTree(jsonStr.getBytes());
-		    JsonNode contextNode = rootNode.path("context");
-		    String text = rootNode.path("input").path("text").textValue();
-		    MessageRequest newMessage = null;
-		    if(contextNode!=null && !contextNode.isNull()){
-			ObjectMapper mapper = new ObjectMapper();
-			Map<String, Object> result = mapper.convertValue(contextNode, Map.class);
-			newMessage = new MessageRequest.Builder().inputText(text).context(result).build();
-			System.out.println(newMessage);
-		    }else{
-			newMessage = new MessageRequest.Builder().inputText(text).build(); 
-		    }
-		    MessageResponse response = service.message("9b99c9e6-d597-4af7-a877-6f54e8315dec", newMessage).execute();
-		    System.out.println(response);
-		    
-		    if(response.getContext().containsKey("confluence_ctx")){
-			getContentConfluence(response);
-=======
-			rootNode = objectMapper.readTree(intentContent.getBytes());
+			System.out.println(intentContent);
+			String split = intentContent.substring(5,intentContent.length()-2);
+			String jsonStr = split.replaceAll("\\\\", "");
+			System.out.println(jsonStr);
+			rootNode = objectMapper.readTree(jsonStr.getBytes());
 			JsonNode contextNode = rootNode.path("context");
 			String text = rootNode.path("input").path("text").textValue();
 			MessageRequest newMessage = null;
@@ -73,19 +53,21 @@ public class ControllerConversationBot {
 			}else{
 				newMessage = new MessageRequest.Builder().inputText(text).build(); 
 			}
-			MessageResponse response = service.message("9b99c9e6-d597-4af7-a877-6f54e8315dec", newMessage).execute();
-			System.out.println(response);
 
-			WebhookResponse webhookResponse = null;
-			if(response.getContext().containsKey("confluence_ctx")){
-				webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0) + "\n" + getContentConfluence(response).toString(),response.getContext());
+
+
+			MessageResponse response = service.message("9b99c9e6-d597-4af7-a877-6f54e8315dec", newMessage).execute();
+		    System.out.println(response);
+		    
+		    
+		    WebhookResponse webhookResponse = null;
+		    if(response.getContext().containsKey("confluence_ctx")){
+		    	webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0) + "\n" + getContentConfluence(response).toString(),response.getContext());
 			} else {
 				webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0),response.getContext());
 			}
 
->>>>>>> confluence int
-			
-			System.out.println("wbehookResponse "+webhookResponse);
+			System.out.println("webhookResponse "+webhookResponse);
 			return webhookResponse;
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
@@ -94,6 +76,8 @@ public class ControllerConversationBot {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+
 		return null;
 	}
 
