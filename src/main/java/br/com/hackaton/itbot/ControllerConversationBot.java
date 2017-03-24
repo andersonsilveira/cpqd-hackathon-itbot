@@ -2,6 +2,8 @@ package br.com.hackaton.itbot;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +15,9 @@ import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.api.domain.User;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.watson.developer_cloud.conversation.v1.ConversationService;
 import com.ibm.watson.developer_cloud.conversation.v1.model.MessageRequest;
 import com.ibm.watson.developer_cloud.conversation.v1.model.MessageResponse;
@@ -25,13 +30,34 @@ public class ControllerConversationBot {
 	    public @ResponseBody WebhookResponse conversation(@RequestBody String intentContent){
 		ConversationService service = new ConversationService(ConversationService.VERSION_DATE_2016_07_11);
 		service.setUsernameAndPassword("6cd18a8a-bfd3-44ad-a14a-e23ce09605ab", "htALYxSVSRVw");
-
-		MessageRequest newMessage = new MessageRequest.Builder().inputText(intentContent).build();
-		MessageResponse response = service.message("f09a47a0-9a08-4725-ac65-fe881fee19ca", newMessage).execute();
-		System.out.println(response);
-		WebhookResponse webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0));
-		System.out.println("wbehookResponse "+webhookResponse);
-		return webhookResponse;
+		ObjectMapper objectMapper = new ObjectMapper();
+		JsonNode rootNode;
+		try {
+		    rootNode = objectMapper.readTree(intentContent.getBytes());
+		    JsonNode contextNode = rootNode.path("context");
+		    String text = rootNode.path("input").path("text").textValue();
+		    MessageRequest newMessage = null;
+		    if(contextNode!=null && !contextNode.isNull()){
+			ObjectMapper mapper = new ObjectMapper();
+			Map<String, Object> result = mapper.convertValue(contextNode, Map.class);
+			newMessage = new MessageRequest.Builder().inputText(text).context(result).build();
+			System.out.println(newMessage);
+		    }else{
+			newMessage = new MessageRequest.Builder().inputText(text).build(); 
+		    }
+		    MessageResponse response = service.message("9b99c9e6-d597-4af7-a877-6f54e8315dec", newMessage).execute();
+		    System.out.println(response);
+		    WebhookResponse webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0),response.getContext());
+		    System.out.println("wbehookResponse "+webhookResponse);
+		    return webhookResponse;
+		} catch (JsonProcessingException e) {
+		    // TODO Auto-generated catch block
+		    e.printStackTrace();
+		} catch (IOException e) {
+		    // TODO Auto-generated catch block
+		    e.printStackTrace();
+		}
+		return null;
 	}
 	    
 	    

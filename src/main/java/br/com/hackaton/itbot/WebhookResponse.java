@@ -1,13 +1,25 @@
 package br.com.hackaton.itbot;
+
+import java.util.Map;
+
 public class WebhookResponse {
     private final String speech;
     private final String displayText;
 
     private final String source = "java-webhook";
+    
+    private final String conversationId = "";
+    private final Map<String, Object> context;
 
-    public WebhookResponse(String speech, String displayText) {
-        this.speech = speech;
-        this.displayText = displayText;
+   /**
+     * @param inputText
+     * @param displayText2
+     * @param context
+     */
+    public WebhookResponse(String inputText, String displayText2, Map<String, Object> context) {
+	 this.context = context;
+	 this.speech = inputText;
+	 this.displayText = displayText2;
     }
 
 
@@ -23,9 +35,21 @@ public class WebhookResponse {
         return source;
     }
     
+ 
+
+    public String getConversationId() {
+        return conversationId;
+    }
+
+
     @Override
     public String toString() {
-    	return "WebhookResponse [speech=" + speech + ", displayText="
-    			+ displayText + ", source=" + source + "]";
+	return "WebhookResponse [speech=" + speech + ", displayText=" + displayText + ", source=" + source
+		+ ", conversationId=" + conversationId + "]";
+    }
+
+
+    public Map<String, Object> getContext() {
+        return context;
     }
 }
