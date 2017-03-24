@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 
+
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,7 +32,11 @@ public class ControllerConversationBot {
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode rootNode;
 		try {
-		    rootNode = objectMapper.readTree(intentContent.getBytes());
+		    System.out.println(intentContent);
+		    String split = intentContent.substring(5,intentContent.length()-2);
+		    String jsonStr = split.replaceAll("\\\\", "");
+		    System.out.println(jsonStr);
+		    rootNode = objectMapper.readTree(jsonStr.getBytes());
 		    JsonNode contextNode = rootNode.path("context");
 		    String text = rootNode.path("input").path("text").textValue();
 		    MessageRequest newMessage = null;
