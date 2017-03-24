@@ -47,6 +47,12 @@ public class ControllerConversationBot {
 		    }
 		    MessageResponse response = service.message("9b99c9e6-d597-4af7-a877-6f54e8315dec", newMessage).execute();
 		    System.out.println(response);
+		    
+		    if(response.getContext().containsKey("confluence_ctx")){
+			getContentConfluence(response);
+			
+		    }
+		    
 		    WebhookResponse webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0),response.getContext());
 		    System.out.println("wbehookResponse "+webhookResponse);
 		    return webhookResponse;
@@ -59,6 +65,13 @@ public class ControllerConversationBot {
 		}
 		return null;
 	}
+
+
+	    private void getContentConfluence(MessageResponse response) {
+		Object topico = response.getContext().get("topico_ctx");
+		Object ferramenta = response.getContext().get("ferramenta_ctx");
+		Object problema = response.getInput().get("text");
+	    }
 	    
 	    
 	 void createJira() throws URISyntaxException, IOException{
