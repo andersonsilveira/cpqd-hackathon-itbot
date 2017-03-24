@@ -37,21 +37,62 @@
 	  		<artifactId>conversation</artifactId>
 	  		<version>3.7.0</version>
 	  	</dependency>
-	   <dependency>
+	  
+    
+      <dependency>
+        <groupId>com.sun.jersey</groupId>
+        <artifactId>jersey-client</artifactId>
+        <version>1.8</version>
+</dependency>
+<dependency>
+        <groupId>org.json</groupId>
+        <artifactId>json</artifactId>
+        <version>20090211</version>
+</dependency>
+ <dependency>
         <groupId>com.atlassian.jira</groupId>
-        <artifactId>jira-rest-java-client-api</artifactId>
-        <version>3.0.0</version>
-    </dependency>
-    <dependency>
-        <groupId>com.atlassian.jira</groupId>
-        <artifactId>jira-rest-java-client-core</artifactId>
-        <version>3.0.0</version>
-    </dependency>
-        
-    </dependencies>
+        <artifactId>jira-components</artifactId>
+        <version>6.3.1</version>
+        <type>pom</type>
+       </dependency>
+       
+       <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+<dependency>
+    <groupId>org.apache.httpcomponents</groupId>
+    <artifactId>httpclient</artifactId>
+    <version>4.3.4</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpmime -->
+<dependency>
+    <groupId>org.apache.httpcomponents</groupId>
+    <artifactId>httpmime</artifactId>
+    <version>4.3.1</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/javax.mail/mail -->
+<dependency>
+    <groupId>javax.mail</groupId>
+    <artifactId>mail</artifactId>
+    <version>1.4</version>
+</dependency>
 
 
-    <build>
+       
+       
+        <dependency>
+            <!-- JRJC is distributed under the Apache 2.0 license. -->
+            <groupId>com.atlassian.jira</groupId>
+            <artifactId>jira-rest-java-client</artifactId>
+            <version>2.0.0-m2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>stax</groupId>
+                    <artifactId>stax-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    
+  </dependencies>
+     <build>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -72,34 +113,24 @@
                
             </plugin>
         </plugins>
-    </build>
- <repositories>
-    <repository>
-        <id>atlassian-public</id>
-        <url>https://m2proxy.atlassian.com/repository/public</url>
-        <snapshots>
-            <enabled>true</enabled>
-            <updatePolicy>daily</updatePolicy>
-            <checksumPolicy>warn</checksumPolicy>
-        </snapshots>
-        <releases>
-            <enabled>true</enabled>
-            <checksumPolicy>warn</checksumPolicy>
-        </releases>
-    </repository>
-</repositories>
+        </build>
+        
+          <repositories>
+        <repository>
+            <id>atlassian-public</id>
+            <url>https://m2proxy.atlassian.com/repository/public</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+        </repository>
+    </repositories>
 
-<pluginRepositories>
-    <pluginRepository>
-        <id>atlassian-public</id>
-        <url>https://m2proxy.atlassian.com/repository/public</url>
-        <releases>
-            <enabled>true</enabled>
-            <checksumPolicy>warn</checksumPolicy>
-        </releases>
-        <snapshots>
-            <checksumPolicy>warn</checksumPolicy>
-        </snapshots>
-    </pluginRepository>
-</pluginRepositories>
+
+   
 </project>
