@@ -145,7 +145,7 @@ public class JiraService {
 	 */
 	public void validateUser(String username, String password) throws AuthenticationException, ClientHandlerException {
 	    
-		String auth = getEncodedCredentials();
+		String auth = new String(Base64.encode(username + ":" + password));
 		
 		Client client = Client.create();
 	    WebResource webResource = client.resource(JIRA_URL);
