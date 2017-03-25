@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.naming.AuthenticationException;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -13,26 +15,38 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.atlassian.jira.rest.client.domain.BasicIssue;
-import com.atlassian.jira.rest.client.domain.input.IssueInputBuilder;
+import br.com.hackaton.jira.JiraService;
 import com.ibm.watson.developer_cloud.conversation.v1.ConversationService;
 import com.ibm.watson.developer_cloud.conversation.v1.model.MessageRequest;
 import com.ibm.watson.developer_cloud.conversation.v1.model.MessageResponse;
+import com.sun.jersey.api.client.ClientHandlerException;
 
 import br.com.hackaton.jira.ConfluenceService;
 import br.com.hackaton.jira.JiraService;
 import br.com.hackaton.mail.Mail;
 
 @Controller
-@RequestMapping("/conversation")
 public class ControllerConversationBot {
 
-	private static Map<String, Map<String, Object>> sessionMap = new HashMap<String, Map<String, Object>>();
+    	/**
+     * 
+     */
+    private static final String PASSWORD = "htALYxSVSRVw";
+	/**
+     * 
+     */
+    private static final String USER = "6cd18a8a-bfd3-44ad-a14a-e23ce09605ab";
+	/**
+     * 
+     */
+    private static final String WORKSPACE = "afac64e0-4ee0-4e39-a3ea-75d0ae90e4cc";
+	private static Map<String, Map<String, Object>> sessionMap = new HashMap<String, Map<String,Object>>();
 	private static Map<String, List<String>> sessionConversationMap = new HashMap<String, List<String>>();
 
-	@RequestMapping(method = RequestMethod.GET)
+	@RequestMapping(value="/conversation",method = RequestMethod.GET)
 	public @ResponseBody WebhookResponse conversation(@RequestParam(name="text") String intentContent, @RequestParam(name="conversationId",required=false) String conversationId){
 		ConversationService service = new ConversationService(ConversationService.VERSION_DATE_2016_07_11);
-		service.setUsernameAndPassword("6cd18a8a-bfd3-44ad-a14a-e23ce09605ab", "htALYxSVSRVw");
+		service.setUsernameAndPassword(USER, PASSWORD);
 		try {
 			System.out.println(intentContent);
 			System.out.println("conversationId "+conversationId);
@@ -41,7 +55,7 @@ public class ControllerConversationBot {
 			MessageResponse response = null;
 			if(isInitialContext){
 			        newMessage = new MessageRequest.Builder().inputText(intentContent).build();
-			        response = service.message("9b99c9e6-d597-4af7-a877-6f54e8315dec", newMessage).execute();
+			        response = service.message(WORKSPACE, newMessage).execute();
 			        Map<String, Object> context = response.getContext();
 			        System.out.println("contextoMpa "+context);
 			        sessionMap.put(context.get("conversation_id").toString(), context);
@@ -50,7 +64,7 @@ public class ControllerConversationBot {
 			}else{
 			       System.out.println("Mapa 2 "+sessionMap.toString());
 			        newMessage = new MessageRequest.Builder().inputText(intentContent).context(sessionMap.get(conversationId)).build();
-			        response = service.message("9b99c9e6-d597-4af7-a877-6f54e8315dec", newMessage).execute();
+			        response = service.message(WORKSPACE, newMessage).execute();
 			       	
 			}
 
@@ -153,6 +167,20 @@ public class ControllerConversationBot {
 		ConfluenceService cs = new ConfluenceService();
 		return cs.formateResponseToInterface(cs.queryKnowledgebase(ferramenta, problema));
 
+	}
+	
+	@RequestMapping(value="/login",method = RequestMethod.GET)
+	public @ResponseBody String login(@RequestParam(name="usuario") String user, @RequestParam(name="senha") String senha){
+	    JiraService jiraService = new JiraService(user, senha);
+	    try {
+		jiraService.validateUser(user, senha);
+	    } catch (AuthenticationException e) {
+		return "401";
+	    } catch (ClientHandlerException e) {
+		return "402";
+	    }
+	    return "500";
+	    
 	}
 	
 

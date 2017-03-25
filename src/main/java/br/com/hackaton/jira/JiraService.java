@@ -55,6 +55,9 @@ public class JiraService {
 		this.setUsername(username);
 		this.setPassword(password);
 	} 
+	public JiraService(){
+	    
+	}
 	
 	/**
 	 * @param attachment
@@ -144,7 +147,7 @@ public class JiraService {
 	 * @throws ClientHandlerException
 	 */
 	public void validateUser(String username, String password) throws AuthenticationException, ClientHandlerException {
-	    
+	    System.out.println("validade user:"+username+": "+password);
 		String auth = new String(Base64.encode(username + ":" + password));
 		
 		Client client = Client.create();
