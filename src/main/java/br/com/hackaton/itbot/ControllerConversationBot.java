@@ -79,8 +79,10 @@ public class ControllerConversationBot {
 		    
 		    WebhookResponse webhookResponse = null;
 		    if(response.getContext().containsKey("confluence_ctx")){
-		    	webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0) + "\n" + getContentConfluence(response),response.getContext());
-		    
+				Map<String, Object> context = response.getContext();
+				context.remove("confluence_ctx");
+		    		webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0) + "\n" + getContentConfluence(response),response.getContext());
+		    	response.getContext().remove("confluence_ctx");
 		    } else if(response.getContext().containsKey("jira_ctx")){
 		    	
 		    	String user = sessionMap.get(conversationId).get("user").toString();
