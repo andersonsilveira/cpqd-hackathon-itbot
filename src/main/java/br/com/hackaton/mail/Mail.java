@@ -2,6 +2,7 @@ package br.com.hackaton.mail;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Properties;
 
 import javax.activation.DataHandler;
@@ -19,66 +20,181 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import br.com.hackaton.form.Form;
+
+/**
+ *
+ */
 public class Mail {
 	
+	final String from = "hackathon.cpqd@gmail.com";
+	final String pass = "cpqdcpqd";
+	
 	/**
-	 * Envia o email com a conversa para o usuario
-	 * @param fileContent
-	 * @throws Exception
+	 * @param user
+	 * @param userMail
+	 * @param attachment
+	 * @throws IOException
 	 */
-	public void send(String user, String userMail, String attachment) throws Exception {
+	public void sendConversation(String user, String userMail, String attachment) throws IOException{
 		
-		String from = "ac885565a7-a9d626@inbox.mailtrap.io";
-		
-		Properties props = new Properties();
-		props.put("mail.smtp.starttls.enable", "true");
-		props.put("mail.smtp.auth", "true");	
-		props.put("mail.smtp.host", "smtp.mailtrap.io");
-		props.put("mail.smtp.port", "25");
-		
-		final String username = "a52f59b3a5589b";
-		final String password = "c5948e3fe67c47";
-		
-		Session session = Session.getInstance(props, new javax.mail.Authenticator() {
-			protected PasswordAuthentication getPasswordAuthentication() {
-				return new PasswordAuthentication(username, password);
-			}
-		});
+		Properties props = getProperties();
+		Session session = getSession(props);
+		//session.setDebug(true);
+        
+        try {
 
-		try {
-			Message message = new MimeMessage(session);
+        	Message message = new MimeMessage(session);
      		message.setFrom(new InternetAddress(from));
 
 	    	message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(userMail));
 			message.setSubject("HelpDesk - CPqD");
 
-			BodyPart messageBodyPart = new MimeBodyPart();
-			messageBodyPart.setText("Olá " + user + ", você está recebendo uma cópia da conversa do nosso atendimento. Obrigado");
-
+			BodyPart messageBodyPartLine = new MimeBodyPart();
+			messageBodyPartLine.setText("");
+			
+			BodyPart messageBodyPartHi = new MimeBodyPart();
+			messageBodyPartHi.setText("Olá " + user + "!");
+									
+			BodyPart messageBodyPart1 = new MimeBodyPart();
+			messageBodyPart1.setText("Você está recebendo uma cópia do nosso atendimento.");
+			
+			BodyPart messageBodyPart2 = new MimeBodyPart();
+			messageBodyPart2.setText("Qualquer dúvida estamos à disposição.");
+			
+			BodyPart messageBodyPartThanks = new MimeBodyPart();
+			messageBodyPartThanks.setText("Equipe HelpDesk.");			
+			
 			Multipart multipart = new MimeMultipart();
-			multipart.addBodyPart(messageBodyPart);
-
+			multipart.addBodyPart(messageBodyPartHi);
+			multipart.addBodyPart(messageBodyPartLine);			
+			multipart.addBodyPart(messageBodyPart1);
+			multipart.addBodyPart(messageBodyPartLine);
+			multipart.addBodyPart(messageBodyPart2);
+			multipart.addBodyPart(messageBodyPartLine);
+			multipart.addBodyPart(messageBodyPartThanks);
+			                   
 			// Parte dois eh o anexo do email
-			messageBodyPart = new MimeBodyPart();
-			
-			File file = File.createTempFile("chat", ".txt");					      
-		    FileWriter fileWriter = new FileWriter(file);  
-		    fileWriter.write(attachment);
-		    fileWriter.close();  
-			
+			BodyPart attachmentPart = new MimeBodyPart();
+
+			File file = File.createTempFile("chat", ".txt");
+			FileWriter fileWriter = new FileWriter(file);
+			fileWriter.write(attachment);
+			fileWriter.close();
+
 			DataSource source = new FileDataSource(file.getPath());
-			messageBodyPart.setDataHandler(new DataHandler(source));
-			messageBodyPart.setFileName(file.getName());
-			multipart.addBodyPart(messageBodyPart);
+			attachmentPart.setDataHandler(new DataHandler(source));
+			attachmentPart.setFileName(file.getName());
+			multipart.addBodyPart(attachmentPart);
 
 			message.setContent(multipart);
 
+			/** Método para enviar a mensagem criada */
 			Transport.send(message);
+			//System.out.println("Feito!!!");
+			
+         } catch (MessagingException e) {
+              throw new RuntimeException(e);
+        }
+	}
 
-			System.out.println("Email enviado com sucesso");
+	/**
+	 * @param props
+	 * @return
+	 */
+	private Session getSession(Properties props) {
+		Session session = Session.getDefaultInstance(props, new javax.mail.Authenticator() {
+			protected PasswordAuthentication getPasswordAuthentication() {
+				return new PasswordAuthentication(from, pass);
+			}
+		});
+		return session;
+	}
 
-		} catch (MessagingException e) {
-			throw new RuntimeException(e);
-		}
+	/**
+	 * @return
+	 */
+	private Properties getProperties() {
+		Properties props = new Properties();
+        
+		/** Parâmetros de conexão com servidor Gmail */
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.socketFactory.port", "465");
+        props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.port", "465");
+		return props;
+	}	
+	
+	/**
+	 * @param user
+	 * @param userMail
+	 * @param attachment
+	 * @throws IOException
+	 */
+	public void sendForm(String user, String userMail) throws IOException{	
+		
+		Properties props = getProperties();
+		Session session = getSession(props);
+		//session.setDebug(true);
+        
+        try {
+
+        	Message message = new MimeMessage(session);
+     		message.setFrom(new InternetAddress(from));
+
+	    	message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(userMail));
+			message.setSubject("HelpDesk - CPqD - Pesquisa de Satisfação");
+
+			BodyPart messageBodyPartLine = new MimeBodyPart();
+			messageBodyPartLine.setText("");
+			
+			BodyPart messageBodyPartHi = new MimeBodyPart();
+			messageBodyPartHi.setText("Olá " + user + "!");
+									
+			BodyPart messageBodyPart1 = new MimeBodyPart();
+			messageBodyPart1.setText("Você está recebendo um link com a nossa pesquisa de satisfação.");
+			
+			BodyPart messageBodyPart2 = new MimeBodyPart();
+			messageBodyPart2.setText("Nos ajude a melhorar nosso atendimento respondendo a pesquisa. É rapidinho. =D");
+			
+			BodyPart messageBodyPartLink = new MimeBodyPart();			
+			Form form = new Form();
+			messageBodyPartLink.setText(form.getLink());
+			
+			BodyPart messageBodyPartThanks = new MimeBodyPart();
+			messageBodyPartThanks.setText("A equipe HelpDesk agradece!");			
+			
+			Multipart multipart = new MimeMultipart();
+			multipart.addBodyPart(messageBodyPartHi);
+			multipart.addBodyPart(messageBodyPartLine);			
+			multipart.addBodyPart(messageBodyPart1);
+			multipart.addBodyPart(messageBodyPartLine);
+			multipart.addBodyPart(messageBodyPart2);
+			multipart.addBodyPart(messageBodyPartLine);
+			multipart.addBodyPart(messageBodyPartLink);
+			multipart.addBodyPart(messageBodyPartLine);
+			multipart.addBodyPart(messageBodyPartThanks);
+
+			message.setContent(multipart);
+
+			/** Método para enviar a mensagem criada */
+			Transport.send(message);
+			//System.out.println("Feito!!!");
+			
+         } catch (MessagingException e) {
+              throw new RuntimeException(e);
+        }
+	}	
+	
+	/**
+	 * @param args
+	 * @throws IOException
+	 */
+	public static void main2(String[] args) throws IOException {
+		
+		Mail mail = new Mail();
+		mail.sendConversation("lfrocha", "lfmrocha88@gmail.com", "Oi gato");		
+		mail.sendForm("lfrocha", "lfmrocha88@gmail.com");
 	}
 }
