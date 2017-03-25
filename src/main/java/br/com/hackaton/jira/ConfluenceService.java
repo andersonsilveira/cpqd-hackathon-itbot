@@ -18,27 +18,31 @@ public class ConfluenceService {
 
 	private static final String CONFLUENCE_URL = "https://jira.cpqd.com.br";
 	private static final String QUERY_KNOWLEDGEBASE = "/rest/servicedesk/knowledgebase/latest/articles/search?query=%s&spaceKey=TI&project=HD";
-	
+
 	public String formateResponseToInterface (List<ConfluenceResponse> confluenseResponse) {
 		StringBuilder formattedString = new StringBuilder();
 		int responseCount = 1;
-		for (ConfluenceResponse confluenceResponse : confluenseResponse) {
-			formattedString.append(responseCount + ") " + confluenceResponse);
-			responseCount++;
+		if (confluenseResponse != null && !confluenseResponse.isEmpty()) {
+			for (ConfluenceResponse confluenceResponse : confluenseResponse) {
+				formattedString.append(responseCount + ") " + confluenceResponse);
+				responseCount++;
+			}
+		} else {
+			formattedString.append("Nenhum item encontrado na base de conhecimento");
 		}
 		return formattedString.toString();
 	}
 
 	public List<ConfluenceResponse> queryKnowledgebase(String tool, String issue) {
-		
+
 		List<ConfluenceResponse> responseItems;
-		
+
 		String url = setUpQueryString(tool, issue);
 
 		String responseJson = sendRequestAndGetResponse(url);
-		
+
 		responseItems = formatReceivedJson(responseJson);
-		
+
 		System.out.println("responseItems: " + formateResponseToInterface(responseItems));
 
 		return responseItems;
@@ -63,19 +67,19 @@ public class ConfluenceService {
 				String formattedTitle = foundItem.get("title").toString();
 				formattedTitle = formattedTitle.replaceAll("(@(.*?)@*)[A-Za-z]*(@(.*?)@*)", "");
 				System.out.println("formattedTitle: " + formattedTitle);
-				
+
 				System.out.println("link: " + foundItem.get("appLinkUrl") + foundItem.get("url"));
 				String formattedLink = foundItem.get("appLinkUrl").toString() + foundItem.get("url").toString();
 				formattedLink = formattedLink.replaceAll("\"", "");
 				System.out.println("formattedLink: " + formattedLink);
-				
+
 				System.out.println("bodyTextHighlights: " + foundItem.get("bodyTextHighlights"));
 				String formattedBodyTextHighlights = foundItem.get("bodyTextHighlights").toString();
 				formattedBodyTextHighlights = formattedBodyTextHighlights.replaceAll("(@(.*?)@*)[A-Za-z]*(@(.*?)@*)", "");
 				System.out.println("formattedBodyTextHighlights: " + formattedBodyTextHighlights);
-				
+
 				responseItems.add(new ConfluenceResponse(formattedTitle, formattedLink, formattedBodyTextHighlights));
-				
+
 				System.out.println("----------------------------");
 			}
 
@@ -111,9 +115,9 @@ public class ConfluenceService {
 		return url;
 	}
 
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		ConfluenceService cs = new ConfluenceService();
-		cs.queryKnowledgebase("merge", "acesso");
-	}
+		cs.queryKnowledgebase("git", "acesso");
+	}*/
 
 }
