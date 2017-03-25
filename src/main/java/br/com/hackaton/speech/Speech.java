@@ -9,7 +9,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Base64;
 import java.util.Iterator;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -26,6 +25,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.sun.jersey.core.util.Base64;
 
 /**
  * 
@@ -91,7 +91,7 @@ public class Speech {
 		conn.setRequestProperty("Accept", "application/json");
 		conn.setRequestProperty("Content-Type", "audio/wav");
 
-		String authString = new String(Base64.getEncoder().encode("hackathon:1234".getBytes()));
+		String authString = new String(Base64.encode("hackathon:1234"));
 		conn.setRequestProperty("Authorization", "Basic " + authString);
 		conn.connect();
 		
@@ -195,7 +195,7 @@ public class Speech {
 	 * @throws Exception
 	 */
 	public void toAudio(String text) throws Exception{
-		String authString = new String(Base64.getEncoder().encode("hackathon:1234".getBytes()));
+		String authString = new String(Base64.encode("hackathon:1234"));
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("?text=").append(URLEncoder.encode(text, "UTF-8")).append("&voice=rosana-highquality");
