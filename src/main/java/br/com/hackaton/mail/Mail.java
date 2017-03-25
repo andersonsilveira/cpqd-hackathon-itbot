@@ -3,6 +3,7 @@ package br.com.hackaton.mail;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 import java.util.Properties;
 
 import javax.activation.DataHandler;
@@ -36,7 +37,7 @@ public class Mail {
 	 * @param attachment
 	 * @throws IOException
 	 */
-	public void sendConversation(String user, String userMail, String attachment) throws IOException{
+	public void sendConversation(String user, String userMail, List<String> attachment) throws IOException{
 		
 		Properties props = getProperties();
 		Session session = getSession(props);
@@ -77,9 +78,15 @@ public class Mail {
 			// Parte dois eh o anexo do email
 			BodyPart attachmentPart = new MimeBodyPart();
 
+			StringBuilder builder = new StringBuilder();
+			for (String s : attachment) {
+				builder.append(s);
+				builder.append("\n");
+			}
+			    
 			File file = File.createTempFile("chat", ".txt");
 			FileWriter fileWriter = new FileWriter(file);
-			fileWriter.write(attachment);
+			fileWriter.write(builder.toString());
 			fileWriter.close();
 
 			DataSource source = new FileDataSource(file.getPath());
@@ -156,7 +163,7 @@ public class Mail {
 			messageBodyPart1.setText("Você está recebendo um link com a nossa pesquisa de satisfação.");
 			
 			BodyPart messageBodyPart2 = new MimeBodyPart();
-			messageBodyPart2.setText("Nos ajude a melhorar nosso atendimento respondendo a pesquisa. É rapidinho. =D");
+			messageBodyPart2.setText("Nos ajude a melhorar nosso atendimento respondendo a pesquisa. É rapidinho. =D ");
 			
 			BodyPart messageBodyPartLink = new MimeBodyPart();			
 			Form form = new Form();
@@ -191,10 +198,10 @@ public class Mail {
 	 * @param args
 	 * @throws IOException
 	 */
-	public static void main2(String[] args) throws IOException {
+	public static void main1(String[] args) throws IOException {
 		
 		Mail mail = new Mail();
-		mail.sendConversation("lfrocha", "lfmrocha88@gmail.com", "Oi gato");		
-		mail.sendForm("lfrocha", "lfmrocha88@gmail.com");
+		//mail.sendConversation("", "lfmrocha88@gmail.com", "Oi gato");		
+		mail.sendForm("Gustavao Pegador", "gbrandao@cpqd.com.br");
 	}
 }

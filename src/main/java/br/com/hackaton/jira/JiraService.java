@@ -26,6 +26,7 @@ import com.atlassian.jira.rest.client.domain.BasicIssue;
 import com.atlassian.jira.rest.client.domain.Issue;
 import com.atlassian.jira.rest.client.domain.SearchResult;
 import com.atlassian.jira.rest.client.domain.User;
+import com.atlassian.jira.rest.client.domain.input.IssueInput;
 import com.atlassian.jira.rest.client.domain.input.IssueInputBuilder;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.atlassian.util.concurrent.Promise;
@@ -50,7 +51,7 @@ public class JiraService {
 	 * @param username
 	 * @param password
 	 */
-	JiraService(String username, String password) {
+	public JiraService(String username, String password) {
 		this.setUsername(username);
 		this.setPassword(password);
 	} 
@@ -63,20 +64,15 @@ public class JiraService {
 	 * @throws URISyntaxException
 	 * @throws IOException
 	 */
-	public String createIssue(String attachment) throws AuthenticationException, ClientHandlerException, URISyntaxException, IOException {
+	public BasicIssue createIssue(IssueInput issueInput, List<String> attachment) throws AuthenticationException, ClientHandlerException, URISyntaxException, IOException {
 	    
 		JiraRestClientFactory factory = new AsynchronousJiraRestClientFactory();
 	    URI uri = new URI(JIRA_URL);
 
 		JiraRestClient client = factory.createWithBasicHttpAuthentication(uri, this.getUsername(), this.getPassword());				
 		IssueRestClient issueClient = client.getIssueClient();
-
-		//46 = Incidente
-		IssueInputBuilder issueBuilder = new IssueInputBuilder("HACK", new Long(46));
-		issueBuilder.setDescription("issue description");
-		issueBuilder.setSummary("issue summary");	    
 		
-		Promise<BasicIssue> promise = issueClient.createIssue(issueBuilder.build());	
+		Promise<BasicIssue> promise = issueClient.createIssue(issueInput);	
 		BasicIssue bi = promise.claim();
 		
 		System.out.println(bi.getKey());
@@ -85,17 +81,17 @@ public class JiraService {
 			addAttachmentToIssue(bi.getKey(), attachment);
 		}
 		
-		return bi.getKey();		
+		return bi;		
 	}	
 	
 	/**
 	 * Anexa um arquivo no jira
 	 * @param issueKey
-	 * @param fileContent
+	 * @param attachment
 	 * @return
 	 * @throws IOException
 	 */
-	public boolean addAttachmentToIssue(String issueKey, String fileContent) throws IOException{
+	public boolean addAttachmentToIssue(String issueKey, List<String> attachment) throws IOException{
 		 
 	    CloseableHttpClient httpclient = HttpClients.createDefault();
 	     
@@ -103,9 +99,15 @@ public class JiraService {
 	    httppost.setHeader("X-Atlassian-Token", "nocheck");
 	    httppost.setHeader("Authorization", "Basic "+ getEncodedCredentials());
 	    
+	    StringBuilder builder = new StringBuilder();
+	    for(String s : attachment){
+	    	builder.append(s);
+	    	builder.append("\n");	    	
+	    }
+	    
 		File file = File.createTempFile("chat", ".txt");					      
 	    FileWriter fileWriter = new FileWriter(file);  
-	    fileWriter.write(fileContent);
+	    fileWriter.write(builder.toString());
 	    fileWriter.close();  
 	    		
 	    FileBody fileBody = new FileBody(file);	     
@@ -238,32 +240,40 @@ public class JiraService {
 		this.password = password;
 	}
 	
-//	 /**
-//	  * Metodo main para testes
-//	 * @param args
-//	 * @throws Exception
-//	 */
-//	public static void main(String[] args) throws Exception {
-//			
-//			String data = "{\"fields\":{\"project\":{\"key\":\"HACK\"},\"summary\":\"REST Test\",\"issuetype\":{\"name\":\"Incidente\"}}}";
-//		
-//			//String response = createIssue(auth, url, data);
-//			//validateUser("bla", "bla");
-//			
-//			JiraService app = new JiraService("user", "*password*");
-//			//app.addAttachmentToIssue("HACK-13", "Conversa legal");
-//			//app.sendMail("bla");			
-//			
-//			app.getUserIssues();
-//						
-//			//String response = app.getUserMail();			
-//			//String response = "{\"id\":\"1840987\",\"key\":\"HACK-13\",\"self\":\"https://jira.cpqd.com.br/rest/api/2/issue/1840987\"}";
-//			//System.out.println(response);
-//			
-//			//JSONArray projectArray = new JSONArray(response);
-//			//for (int i = 0; i < projectArray.length(); i++) {
-//			  //  JSONObject proj = projectArray.getJSONObject(i);
-//			    //System.out.println("Key:"+proj.getString("key")+", Name:"+proj.getString("name"));
-//			//}       	      
-//		}
+	 /**
+	  * Metodo main para testes
+	 * @param args
+	 * @throws Exception
+	 */
+	public static void main2(String[] args) throws Exception {
+			
+			//validateUser("bla", "bla");
+			
+			JiraService jira = new JiraService("bla", "bla");
+			//app.addAttachmentToIssue("HACK-13", "Conversa legal");
+			
+			String jiraType = "11200";		    			    	
+	    	String jiraDescription = "Solicitação de instalação da Ferramenta GIT - cpqd037167";
+	    	String jiraSummary = "Instalação da Ferramenta GIT";
+	    	
+	    	//abre um chamado	    		    	
+	    	IssueInputBuilder issueBuilder = new IssueInputBuilder("HACK", new Long(jiraType));
+			issueBuilder.setDescription(jiraDescription);
+			issueBuilder.setSummary(jiraSummary);
+			
+			List<String> conversation = new ArrayList<String>();
+			conversation.add("Oi");
+			conversation.add("\n");
+			conversation.add("Tchau");			
+ 							
+	    	BasicIssue basicIssue = jira.createIssue(issueBuilder.build(), conversation);	    	
+			System.out.println(basicIssue);
+			
+			//app.getUserIssues();
+						
+			//String response = app.getUserMail();			
+			//String response = "{\"id\":\"1840987\",\"key\":\"HACK-13\",\"self\":\"https://jira.cpqd.com.br/rest/api/2/issue/1840987\"}";
+			//System.out.println(response);//			
+			     	      
+		}
 }
