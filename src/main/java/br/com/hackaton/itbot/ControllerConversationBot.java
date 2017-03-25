@@ -1,8 +1,16 @@
 package br.com.hackaton.itbot;
+
+import static org.elasticsearch.node.NodeBuilder.*;
+
 import java.io.IOException;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.elasticsearch.client.Client;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.node.Node;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,27 +39,25 @@ public class ControllerConversationBot {
 		JsonNode rootNode;
 		try {
 			System.out.println(intentContent);
-			String split = intentContent.substring(5,intentContent.length()-2);
+			/*String split = intentContent.substring(5,intentContent.length()-2);
 			String jsonStr = split.replaceAll("\\\\", "");
-			System.out.println(jsonStr);
-			rootNode = objectMapper.readTree(jsonStr.getBytes());
+			System.out.println(jsonStr);*/
+			rootNode = objectMapper.readTree(intentContent.getBytes());
 			JsonNode contextNode = rootNode.path("context");
 			String text = rootNode.path("input").path("text").textValue();
 			MessageRequest newMessage = null;
-			if(contextNode!=null && !contextNode.isNull()){
-				ObjectMapper mapper = new ObjectMapper();
-				Map<String, Object> result = mapper.convertValue(contextNode, Map.class);
-				newMessage = new MessageRequest.Builder().inputText(text).context(result).build();
+			boolean isInitialContext = contextNode!=null && !contextNode.isNull();
+			if(isInitialContext){
+				newMessage = createMessageWithContext(contextNode, text);
 				System.out.println(newMessage);
 			}else{
-				newMessage = new MessageRequest.Builder().inputText(text).build(); 
+				newMessage = createMessageWithNewContext(text); 
 			}
 
 
 
-			MessageResponse response = service.message("9b99c9e6-d597-4af7-a877-6f54e8315dec", newMessage).execute();
+		    MessageResponse response = service.message("9b99c9e6-d597-4af7-a877-6f54e8315dec", newMessage).execute();
 		    System.out.println(response);
-		    
 		    
 		    WebhookResponse webhookResponse = null;
 		    if(response.getContext().containsKey("confluence_ctx")){
@@ -61,6 +67,12 @@ public class ControllerConversationBot {
 			}
 
 			System.out.println("webhookResponse "+webhookResponse);
+			/*Node node = nodeBuilder().settings(Settings.builder()
+				.put("path.home", "/path/to/elasticsearch/home/dir")).node();
+			Client client = node.client();
+			client.prepareIndex("suportbotit", "chat", "1")
+			.setSource(putJsonDocument(webhookResponse)).execute().actionGet();
+			node.close();*/
 			return webhookResponse;
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
@@ -74,6 +86,31 @@ public class ControllerConversationBot {
 		return null;
 	}
 
+	private MessageRequest createMessageWithNewContext(String text) {
+	    MessageRequest newMessage;
+	    newMessage = new MessageRequest.Builder().inputText(text).build();
+	    return newMessage;
+	}
+
+	private MessageRequest createMessageWithContext(JsonNode contextNode, String text) {
+	    MessageRequest newMessage;
+	    ObjectMapper mapper = new ObjectMapper();
+	    @SuppressWarnings("unchecked")
+	    Map<String, Object> result = mapper.convertValue(contextNode, Map.class);
+	    newMessage = new MessageRequest.Builder().inputText(text).context(result).build();
+	    return newMessage;
+	}
+	
+	public static Map<String, Object> putJsonDocument(WebhookResponse webhookResponse){
+            Map<String, Object> jsonDocument = new HashMap<String, Object>();
+            jsonDocument.put("speech", webhookResponse.getSpeech());
+            jsonDocument.put("tes", webhookResponse.getDisplayText());
+            jsonDocument.put("postDate", new Date());
+            jsonDocument.put("user", "amorim");
+            jsonDocument.put("entidades", "ferramentas");
+            return jsonDocument;
+        }
+
 
 	private String getContentConfluence(MessageResponse response) {
 
@@ -85,23 +122,7 @@ public class ControllerConversationBot {
 		return cs.formateResponseToInterface(cs.queryKnowledgebase(ferramenta, problema));
 
 	}
-
-
-	/* void createJira() throws URISyntaxException, IOException{
-	     final AsynchronousJiraRestClientFactory factory = new AsynchronousJiraRestClientFactory();
-	     URI uri = new URI("https://jira.cpqd.com.br");//https://jira.cpqd.com.br
-	    final JiraRestClient restClient = factory.createWithBasicHttpAuthentication(uri, "amorim", "cpqd@2015");
-	     try {
-	         final Issue issue = restClient.getIssueClient().getIssue("ETICS-153071").claim();
-	         User user = restClient.getUserClient().getUser("amorim").claim();
-	        // System.out.println(issue);
-	        	 System.out.println(user);
-	     }
-	     finally {
-	         // cleanup the restClient
-	         restClient.close();
-	     }
-	 }*/
+	
 
 
 
