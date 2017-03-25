@@ -14,16 +14,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.atlassian.jira.rest.client.domain.BasicIssue;
+import br.com.hackaton.jira.ConfluenceService;
 import br.com.hackaton.jira.JiraService;
+import br.com.hackaton.mail.Mail;
+
+import com.atlassian.jira.rest.client.domain.BasicIssue;
+import com.atlassian.jira.rest.client.domain.input.IssueInputBuilder;
 import com.ibm.watson.developer_cloud.conversation.v1.ConversationService;
 import com.ibm.watson.developer_cloud.conversation.v1.model.MessageRequest;
 import com.ibm.watson.developer_cloud.conversation.v1.model.MessageResponse;
 import com.sun.jersey.api.client.ClientHandlerException;
-
-import br.com.hackaton.jira.ConfluenceService;
-import br.com.hackaton.jira.JiraService;
-import br.com.hackaton.mail.Mail;
 
 @Controller
 public class ControllerConversationBot {
