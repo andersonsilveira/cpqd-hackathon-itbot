@@ -42,25 +42,21 @@ public class ConfluenceResponse {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("ConfluenceResponse [");
 		if (title != null) {
-			builder.append("title=");
 			builder.append(title);
-			builder.append(", ");
+			builder.append("\n");
 		}
 		if (link != null) {
-			builder.append("link=");
 			builder.append(link);
-			builder.append(", ");
+			builder.append("\n");
 		}
 		if (bodyTextHighlights != null) {
-			builder.append("bodyTextHighlights=");
 			builder.append(bodyTextHighlights);
+			builder.append("\n");
 		}
-		builder.append("]");
 		return builder.toString();
 	}
-	
+
 	
 
 }

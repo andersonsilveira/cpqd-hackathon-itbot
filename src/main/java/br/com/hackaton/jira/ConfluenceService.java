@@ -18,6 +18,16 @@ public class ConfluenceService {
 
 	private static final String CONFLUENCE_URL = "https://jira.cpqd.com.br";
 	private static final String QUERY_KNOWLEDGEBASE = "/rest/servicedesk/knowledgebase/latest/articles/search?query=%s&spaceKey=TI&project=HD";
+	
+	public String formateResponseToInterface (List<ConfluenceResponse> confluenseResponse) {
+		StringBuilder formattedString = new StringBuilder();
+		int responseCount = 1;
+		for (ConfluenceResponse confluenceResponse : confluenseResponse) {
+			formattedString.append(responseCount + ") " + confluenceResponse);
+			responseCount++;
+		}
+		return formattedString.toString();
+	}
 
 	public List<ConfluenceResponse> queryKnowledgebase(String tool, String issue) {
 		
@@ -29,7 +39,7 @@ public class ConfluenceService {
 		
 		responseItems = formatReceivedJson(responseJson);
 		
-		System.out.println("responseItems: " + responseItems);
+		System.out.println("responseItems: " + formateResponseToInterface(responseItems));
 
 		return responseItems;
 	}
@@ -45,7 +55,7 @@ public class ConfluenceService {
 			Iterator it = contextNode.iterator();
 			while (it.hasNext()) {
 				System.out.println("----------------------------");
-				//System.out.println(it.next());
+
 				ObjectNode foundItem = (ObjectNode)it.next();
 				System.out.println("foundItem: " + foundItem);
 
@@ -101,9 +111,9 @@ public class ConfluenceService {
 		return url;
 	}
 
-	/*public static void main(String[] args) {
+	public static void main(String[] args) {
 		ConfluenceService cs = new ConfluenceService();
 		cs.queryKnowledgebase("merge", "acesso");
-	}*/
+	}
 
 }

@@ -55,7 +55,7 @@ public class ControllerConversationBot {
 		    
 		    WebhookResponse webhookResponse = null;
 		    if(response.getContext().containsKey("confluence_ctx")){
-		    	webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0) + "\n" + getContentConfluence(response).toString(),response.getContext());
+		    	webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0) + "\n" + getContentConfluence(response),response.getContext());
 			} else {
 				webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0),response.getContext());
 			}
@@ -75,14 +75,14 @@ public class ControllerConversationBot {
 	}
 
 
-	private List<ConfluenceResponse> getContentConfluence(MessageResponse response) {
+	private String getContentConfluence(MessageResponse response) {
 
 		//String topico = response.getContext().get("topico_ctx").toString();
 		String ferramenta = (String) response.getContext().get("ferramenta_ctx");
 		String problema = (String) response.getInput().get("text");
 
 		ConfluenceService cs = new ConfluenceService();
-		return cs.queryKnowledgebase(ferramenta, problema);
+		return cs.formateResponseToInterface(cs.queryKnowledgebase(ferramenta, problema));
 
 	}
 
