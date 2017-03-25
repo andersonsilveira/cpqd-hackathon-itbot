@@ -119,8 +119,11 @@ public class ControllerConversationBot {
 		    
 		    } else if(response.getContext().containsKey("end_ctx")){
 		    
+		    	System.out.println("Finalizando conversa.");		    	
 		    	String user = sessionMap.get(conversationId).get("user").toString();
+		    	System.out.println("User: " + user);
 		    	String userMail = sessionMap.get(conversationId).get("userMail").toString();
+		    	System.out.println("UserMail: " + userMail);
 		    	
 		    	//envia o formulario de pesquisa
 		    	Mail mail = new Mail();
@@ -128,8 +131,9 @@ public class ControllerConversationBot {
 		    	mail.sendForm(user, userMail);	 
 		    	
 		    	webhookResponse = new WebhookResponse(response.getInputText(), response.getText().get(0) , response.getContext());
-		   
-		    
+		    	System.out.println("Emails enviados");
+		    	System.out.println("Texto da resposta: " + response.getText().get(0));
+		    	
 		    } else {
 				webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0),response.getContext());
 			}

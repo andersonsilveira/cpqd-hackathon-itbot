@@ -38,6 +38,9 @@ public class Mail {
 	 * @throws IOException
 	 */
 	public void sendConversation(String user, String userMail, List<String> attachment) throws IOException{
+		System.out.println("Enviando email com copia da conversa.");
+		System.out.println("User: " + user);
+		System.out.println("userMail: " + userMail);
 		
 		Properties props = getProperties();
 		Session session = getSession(props);
@@ -98,7 +101,8 @@ public class Mail {
 
 			/** Método para enviar a mensagem criada */
 			Transport.send(message);
-			//System.out.println("Feito!!!");
+						
+			System.out.println("Email enviado com sucesso.");
 			
          } catch (MessagingException e) {
               throw new RuntimeException(e);
@@ -140,6 +144,10 @@ public class Mail {
 	 * @throws IOException
 	 */
 	public void sendForm(String user, String userMail) throws IOException{	
+		
+		System.out.println("Enviando email de pesquisa.");
+		System.out.println("User: " + user);
+		System.out.println("userMail: " + userMail);
 		
 		Properties props = getProperties();
 		Session session = getSession(props);
@@ -187,7 +195,7 @@ public class Mail {
 
 			/** Método para enviar a mensagem criada */
 			Transport.send(message);
-			//System.out.println("Feito!!!");
+			System.out.println("Email enviado com sucesso.");
 			
          } catch (MessagingException e) {
               throw new RuntimeException(e);
