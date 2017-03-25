@@ -37,7 +37,6 @@ public class Speech {
 	private static String SORRY_TEXT = "Desculpe, não entendi";
 	private static String BEST_SCORE = "100";
 	
-
 	/**
 	 * DJ - Toca o som
 	 * @param stream
