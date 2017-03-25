@@ -3,6 +3,7 @@ package br.com.hackaton.mail;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -87,7 +88,10 @@ public class Mail {
 				builder.append("\n");
 			}
 			    
-			File file = File.createTempFile("chat", ".txt");
+			String tempDir = System.getProperty("java.io.tmpdir");
+			String fileName = ("conversation-" + user + "-" + System.nanoTime() + ".txt");
+			 
+			File file = new File(tempDir, fileName);
 			FileWriter fileWriter = new FileWriter(file);
 			fileWriter.write(builder.toString());
 			fileWriter.close();
@@ -209,7 +213,9 @@ public class Mail {
 	public static void main1(String[] args) throws IOException {
 		
 		Mail mail = new Mail();
-		//mail.sendConversation("", "lfmrocha88@gmail.com", "Oi gato");		
-		mail.sendForm("Gustavao Pegador", "gbrandao@cpqd.com.br");
+		List<String> ss = new ArrayList<String>();
+		ss.add("Linha 1");
+		mail.sendConversation("diegoc", "constantini.diego@gmail.com", ss);		
+		//mail.sendForm("Gustavao Pegador", "gbrandao@cpqd.com.br");
 	}
 }

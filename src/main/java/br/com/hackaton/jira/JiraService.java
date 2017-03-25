@@ -108,12 +108,15 @@ public class JiraService {
 	    	builder.append("\n");	    	
 	    }
 	    
-		File file = File.createTempFile("chat", ".txt");					      
-	    FileWriter fileWriter = new FileWriter(file);  
-	    fileWriter.write(builder.toString());
-	    fileWriter.close();  
-	    		
-	    FileBody fileBody = new FileBody(file);	     
+	    String tempDir = System.getProperty("java.io.tmpdir");
+		String fileName = ("conversation-" + this.getUsername() + "-" + System.nanoTime() + ".txt");
+		 
+		File file = new File(tempDir, fileName);
+		FileWriter fileWriter = new FileWriter(file);
+		fileWriter.write(builder.toString());
+		fileWriter.close();
+		
+		FileBody fileBody = new FileBody(file);	     
 	    HttpEntity entity = MultipartEntityBuilder.create().addPart("file", fileBody).build();	     
 	    httppost.setEntity(entity);
 	     
@@ -244,7 +247,7 @@ public class JiraService {
 		this.password = password;
 	}
 	
-	 /**
+	/**
 	  * Metodo main para testes
 	 * @param args
 	 * @throws Exception
@@ -253,7 +256,7 @@ public class JiraService {
 			
 			//validateUser("bla", "bla");
 			
-			JiraService jira = new JiraService("bla", "bla");
+			JiraService jira = new JiraService("gbrandao", "cpqd2015");
 			//app.addAttachmentToIssue("HACK-13", "Conversa legal");
 			
 			String jiraType = "11200";		    			    	
