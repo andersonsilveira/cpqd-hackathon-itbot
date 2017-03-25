@@ -71,6 +71,7 @@ public class ControllerConversationBot {
 		    WebhookResponse webhookResponse = null;
 		    if(response.getContext().containsKey("confluence_ctx")){
 		    	webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0) + "\n" + getContentConfluence(response),response.getContext());
+		    	response.getContext().remove("confluence_ctx");
 			} else {
 				webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0),response.getContext());
 			}
