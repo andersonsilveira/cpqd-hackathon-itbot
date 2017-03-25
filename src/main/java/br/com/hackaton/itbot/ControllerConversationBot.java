@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.atlassian.jira.rest.client.domain.BasicIssue;
 import com.atlassian.jira.rest.client.domain.input.IssueInputBuilder;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.watson.developer_cloud.conversation.v1.ConversationService;
 import com.ibm.watson.developer_cloud.conversation.v1.model.MessageRequest;
 import com.ibm.watson.developer_cloud.conversation.v1.model.MessageResponse;
@@ -35,18 +33,8 @@ public class ControllerConversationBot {
 	public @ResponseBody WebhookResponse conversation(@RequestParam(name="text") String intentContent, @RequestParam(name="conversationId",required=false) String conversationId){
 		ConversationService service = new ConversationService(ConversationService.VERSION_DATE_2016_07_11);
 		service.setUsernameAndPassword("6cd18a8a-bfd3-44ad-a14a-e23ce09605ab", "htALYxSVSRVw");
-		/*ObjectMapper objectMapper = new ObjectMapper();
-		JsonNode rootNode;*/
 		try {
 			System.out.println(intentContent);
-			/*String split = intentContent.substring(5,intentContent.length()-2);
-			String jsonStr = split.replaceAll("\\\\", "");
-			System.out.println(jsonStr);
-			rootNode = objectMapper.readTree(jsonStr.getBytes());
-			JsonNode contextNode = rootNode.path("context");
-			String text = rootNode.path("input").path("text").textValue();
-			MessageRequest newMessage = null;*/
-			//boolean isInitialContext = contextNode!=null && !contextNode.isNull();
 			System.out.println("conversationId "+conversationId);
 			boolean isInitialContext = conversationId==null || conversationId.isEmpty() || conversationId.equals("\"0\"");
 			MessageRequest newMessage = null;
@@ -79,9 +67,7 @@ public class ControllerConversationBot {
 		    
 		    WebhookResponse webhookResponse = null;
 		    if(response.getContext().containsKey("confluence_ctx")){
-				Map<String, Object> context = response.getContext();
-				context.remove("confluence_ctx");
-		    		webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0) + "\n" + getContentConfluence(response),response.getContext());
+				webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0) + "\n" + getContentConfluence(response),response.getContext());
 		    	response.getContext().remove("confluence_ctx");
 		    } else if(response.getContext().containsKey("jira_ctx")){
 		    	
@@ -146,21 +132,7 @@ public class ControllerConversationBot {
 		return null;
 	}
 
-	private MessageRequest createMessageWithNewContext(String text) {
-	    MessageRequest newMessage;
-	    newMessage = new MessageRequest.Builder().inputText(text).build();
-	    return newMessage;
-	}
-
-	private MessageRequest createMessageWithContext(JsonNode contextNode, String text) {
-	    MessageRequest newMessage;
-	    ObjectMapper mapper = new ObjectMapper();
-	    @SuppressWarnings("unchecked")
-	    Map<String, Object> result = mapper.convertValue(contextNode, Map.class);
-	    newMessage = new MessageRequest.Builder().inputText(text).context(result).build();
-	    return newMessage;
-	}
-	
+		
 	public static Map<String, Object> putJsonDocument(WebhookResponse webhookResponse){
             Map<String, Object> jsonDocument = new HashMap<String, Object>();
             jsonDocument.put("speech", webhookResponse.getSpeech());
