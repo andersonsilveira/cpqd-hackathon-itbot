@@ -68,6 +68,7 @@ public class ControllerConversationBot {
 			       System.out.println("Mapa 2 "+sessionMap.toString());
 			        newMessage = new MessageRequest.Builder().inputText(intentContent).context(sessionMap.get(conversationId)).build();
 			        response = service.message(WORKSPACE, newMessage).execute();
+			        sessionMap.put(conversationId, response.getContext());
 			       	
 			}
 
