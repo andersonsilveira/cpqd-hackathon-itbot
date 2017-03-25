@@ -31,10 +31,10 @@ public class ControllerConversationBot {
 		JsonNode rootNode;
 		try {
 			System.out.println(intentContent);
-			/*String split = intentContent.substring(5,intentContent.length()-2);
+			String split = intentContent.substring(5,intentContent.length()-2);
 			String jsonStr = split.replaceAll("\\\\", "");
-			System.out.println(jsonStr);*/
-			rootNode = objectMapper.readTree(intentContent.getBytes());
+			System.out.println(jsonStr);
+			rootNode = objectMapper.readTree(jsonStr.getBytes());
 			JsonNode contextNode = rootNode.path("context");
 			String text = rootNode.path("input").path("text").textValue();
 			MessageRequest newMessage = null;
