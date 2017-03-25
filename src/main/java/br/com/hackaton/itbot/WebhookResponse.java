@@ -1,5 +1,6 @@
 package br.com.hackaton.itbot;
 
+import java.util.List;
 import java.util.Map;
 
 public class WebhookResponse {
@@ -16,11 +17,20 @@ public class WebhookResponse {
      * @param displayText2
      * @param context
      */
-    public WebhookResponse(String inputText, String displayText2, Map<String, Object> context) {
+    public WebhookResponse(String inputText, List<String> displayText2, Map<String, Object> context) {
 	 this.context = context;
 	 this.speech = inputText;
-	 this.displayText = displayText2;
+	 StringBuilder stringBuilder = new StringBuilder();
+	 for (String string : displayText2) {
+	     stringBuilder.append(string).append("\n");
+	}
+	 displayText = stringBuilder.toString();
     }
+    public WebhookResponse(String inputText, String displayText2, Map<String, Object> context) {
+  	 this.context = context;
+  	 this.speech = inputText;
+  	 this.displayText = displayText2;
+      }
 
 
 	public String getSpeech() {

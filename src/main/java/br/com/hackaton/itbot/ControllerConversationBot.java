@@ -54,6 +54,7 @@ public class ControllerConversationBot {
 			boolean isInitialContext = conversationId==null || conversationId.isEmpty() || conversationId.equals("\"0\"");
 			MessageRequest newMessage = null;
 			MessageResponse response = null;
+			List<String> text = null;
 			if(isInitialContext){
 			        newMessage = new MessageRequest.Builder().inputText(intentContent).build();
 			        response = service.message(WORKSPACE, newMessage).execute();
@@ -63,12 +64,17 @@ public class ControllerConversationBot {
 			        System.out.println("Mapa 1 "+sessionMap.toString());
 				System.out.println(newMessage);
 				sessionMap.get(context.get("conversation_id").toString()).put("user", userParam);
+				sessionMap.get(context.get("conversation_id").toString()).put("userMail", userParam+"@cpqd.com.br");
+				System.out.println("senha: "  + userConversation.get(userParam)); 
+				System.out.println("userConversation: " + userConversation);
 				sessionMap.get(context.get("conversation_id").toString()).put("password", userConversation.get(userParam));
+				text = response.getText();
 			}else{
 			       System.out.println("Mapa 2 "+sessionMap.toString());
 			        newMessage = new MessageRequest.Builder().inputText(intentContent).context(sessionMap.get(conversationId)).build();
 			        response = service.message(WORKSPACE, newMessage).execute();
 			        sessionMap.put(conversationId, response.getContext());
+			        text = response.getText();
 			       	
 			}
 
@@ -79,18 +85,25 @@ public class ControllerConversationBot {
 			} 
 			
 			sessionConversationMap.get(response.getContext().get("conversation_id")).add(response.getInputText());
-			sessionConversationMap.get(response.getContext().get("conversation_id")).add(response.getText().get(0));
+			sessionConversationMap.get(response.getContext().get("conversation_id")).add(text.get(0));
 			
 		    System.out.println(response);
-		    
 		    WebhookResponse webhookResponse = null;
 		    if(response.getContext().containsKey("confluence_ctx")){
-				webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0) + "\n" + getContentConfluence(response),response.getContext());
+			String text1 = response.getText().get(0) + "\n" + getContentConfluence(response);
+			String text2 = response.getText().get(1);
+			ArrayList<String> texts = new ArrayList<String>();
+			texts.add(text1);
+			texts.add(text2);
+				webhookResponse = new WebhookResponse(response.getInputText(),texts, response.getContext());
 		    	response.getContext().remove("confluence_ctx");
-		    } else if(response.getContext().containsKey("jira_ctx") && isInitialContext){
-		    	
+		    } else if(response.getContext().containsKey("jira_ctx")){
+		    	System.out.println("entrou no jira ctx");
+		    	response.getContext().remove("jira_ctx");
 		    	String user = sessionMap.get(conversationId).get("user").toString();
+			System.out.println("usuario abri jira"+user);
 		    	String password = sessionMap.get(conversationId).get("password").toString();
+			System.out.println("senha jira" +password);
 		    	
 		    	//11200 - Solicitação de Serviço
 		    	//46 = Incidente
@@ -108,7 +121,7 @@ public class ControllerConversationBot {
 		    	BasicIssue basicIssue = jira.createIssue(issueBuilder.build(), sessionConversationMap.get(response.getContext().get("conversation_id")));
 
 		    	StringBuilder responseText = new StringBuilder();
-		    	responseText.append(response.getText().get(0));
+		    	responseText.append(text.get(0));
 		    	responseText.append(" - ");
 		    	responseText.append(basicIssue.getKey());
 		    	responseText.append(" - ");
@@ -119,6 +132,7 @@ public class ControllerConversationBot {
 		    
 		    } else if(response.getContext().containsKey("end_ctx")){
 		    
+			response.getContext().remove("end_ctx");
 		    	System.out.println("Finalizando conversa.");		    	
 		    	String user = sessionMap.get(conversationId).get("user").toString();
 		    	System.out.println("User: " + user);
@@ -130,12 +144,12 @@ public class ControllerConversationBot {
 		    	mail.sendConversation(user, userMail, sessionConversationMap.get(response.getContext().get("conversation_id")));
 		    	mail.sendForm(user, userMail);	 
 		    	
-		    	webhookResponse = new WebhookResponse(response.getInputText(), response.getText().get(0) , response.getContext());
+		    	webhookResponse = new WebhookResponse(response.getInputText(), text.get(0) , response.getContext());
 		    	System.out.println("Emails enviados");
 		    	System.out.println("Texto da resposta: " + response.getText().get(0));
 		    	
 		    } else {
-				webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0),response.getContext());
+				webhookResponse = new WebhookResponse(response.getInputText(),text.get(0),response.getContext());
 			}
 
 			System.out.println("webhookResponse "+webhookResponse);

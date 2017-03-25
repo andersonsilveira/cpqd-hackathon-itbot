@@ -37,7 +37,7 @@ public class ConfluenceService {
 
 		List<ConfluenceResponse> responseItems;
 
-		String url = setUpQueryString(tool, issue);
+		String url = setUpQueryString(tool.trim(), issue.trim());
 
 		String responseJson = sendRequestAndGetResponse(url);
 
