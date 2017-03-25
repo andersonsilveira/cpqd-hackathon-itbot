@@ -42,9 +42,10 @@ public class ControllerConversationBot {
     private static final String WORKSPACE = "afac64e0-4ee0-4e39-a3ea-75d0ae90e4cc";
 	private static Map<String, Map<String, Object>> sessionMap = new HashMap<String, Map<String,Object>>();
 	private static Map<String, List<String>> sessionConversationMap = new HashMap<String, List<String>>();
+	private static Map<String, String> userConversation = new HashMap<String,String>();
 
 	@RequestMapping(value="/conversation",method = RequestMethod.GET)
-	public @ResponseBody WebhookResponse conversation(@RequestParam(name="text") String intentContent, @RequestParam(name="conversationId",required=false) String conversationId){
+	public @ResponseBody WebhookResponse conversation(@RequestParam(name="user") String userParam, @RequestParam(name="text") String intentContent, @RequestParam(name="conversationId",required=false) String conversationId){
 		ConversationService service = new ConversationService(ConversationService.VERSION_DATE_2016_07_11);
 		service.setUsernameAndPassword(USER, PASSWORD);
 		try {
@@ -61,6 +62,8 @@ public class ControllerConversationBot {
 			        sessionMap.put(context.get("conversation_id").toString(), context);
 			        System.out.println("Mapa 1 "+sessionMap.toString());
 				System.out.println(newMessage);
+				sessionMap.get(context.get("conversation_id").toString()).put("user", userParam);
+				sessionMap.get(context.get("conversation_id").toString()).put("password", userConversation.get(userParam));
 			}else{
 			       System.out.println("Mapa 2 "+sessionMap.toString());
 			        newMessage = new MessageRequest.Builder().inputText(intentContent).context(sessionMap.get(conversationId)).build();
@@ -83,7 +86,7 @@ public class ControllerConversationBot {
 		    if(response.getContext().containsKey("confluence_ctx")){
 				webhookResponse = new WebhookResponse(response.getInputText(),response.getText().get(0) + "\n" + getContentConfluence(response),response.getContext());
 		    	response.getContext().remove("confluence_ctx");
-		    } else if(response.getContext().containsKey("jira_ctx")){
+		    } else if(response.getContext().containsKey("jira_ctx") && isInitialContext){
 		    	
 		    	String user = sessionMap.get(conversationId).get("user").toString();
 		    	String password = sessionMap.get(conversationId).get("password").toString();
@@ -170,16 +173,19 @@ public class ControllerConversationBot {
 	}
 	
 	@RequestMapping(value="/login",method = RequestMethod.GET)
-	public @ResponseBody String login(@RequestParam(name="usuario") String user, @RequestParam(name="senha") String senha){
-	    JiraService jiraService = new JiraService(user, senha);
+	public @ResponseBody String login(@RequestParam(name="usuario") String user, @RequestParam(name="senha") String pwd){
+	    JiraService jiraService = new JiraService(user, pwd);
 	    try {
-		jiraService.validateUser(user, senha);
+		
+		String auth = jiraService.validateUser(user, pwd);
+		userConversation.put(user, pwd);
+		return auth;
 	    } catch (AuthenticationException e) {
 		return "401";
 	    } catch (ClientHandlerException e) {
 		return "402";
 	    }
-	    return "500";
+	 
 	    
 	}
 	

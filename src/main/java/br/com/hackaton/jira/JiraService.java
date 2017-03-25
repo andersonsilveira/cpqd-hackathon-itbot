@@ -146,7 +146,7 @@ public class JiraService {
 	 * @throws AuthenticationException
 	 * @throws ClientHandlerException
 	 */
-	public void validateUser(String username, String password) throws AuthenticationException, ClientHandlerException {
+	public String validateUser(String username, String password) throws AuthenticationException, ClientHandlerException {
 	    System.out.println("validade user:"+username+": "+password);
 		String auth = new String(Base64.encode(username + ":" + password));
 		
@@ -157,7 +157,8 @@ public class JiraService {
 	    
 	    if (statusCode == 401) {
 	        throw new AuthenticationException("Invalid Username or Password");
-	    }	    
+	    }	
+	    return auth;
 	}  
 	
 	/**
