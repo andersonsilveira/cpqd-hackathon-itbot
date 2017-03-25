@@ -1,19 +1,31 @@
 package br.com.hackaton.speech;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.Base64;
+import java.util.Iterator;
 
 import javax.net.ssl.HttpsURLConnection;
-
-import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineEvent.Type;
+import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * 
@@ -21,6 +33,10 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 public class Speech {
 
 	private static Boolean state = false;
+	private static String RECOGNIZED = "RECOGNIZED";
+	private static String SORRY_TEXT = "Desculpe, não entendi";
+	private static String BEST_SCORE = "100";
+	
 
 	/**
 	 * DJ - Toca o som
@@ -35,7 +51,6 @@ public class Speech {
 		state = false;
 		
 		Clip clip = AudioSystem.getClip();
-		AudioFormat format = new AudioFormat(16000, 16, 1, true, false);	    
 		AudioInputStream inputStream = AudioSystem.getAudioInputStream(stream);
 		clip.open(inputStream);
 
@@ -67,9 +82,9 @@ public class Speech {
 	 * Recebe o caminho de um arquivo de audio e retorna a string
 	 * @throws Exception
 	 */
-	public void toText(String audioPath) throws Exception{
+	public String toText(String audioPath) throws Exception{
 		
-	/*	URL request = new URL("https://speechweb.cpqd.com.br/spider/recognize");
+		URL request = new URL("https://speechweb.cpqd.com.br/spider/recognize");
 		HttpsURLConnection conn = (HttpsURLConnection) request.openConnection();
 		conn.setRequestMethod("POST");
 		conn.setDoOutput(true);
@@ -80,23 +95,98 @@ public class Speech {
 		conn.setRequestProperty("Authorization", "Basic " + authString);
 		conn.connect();
 		
-		// Envia o audio
+		// Envia o áudio
 		OutputStream out = conn.getOutputStream();
-
-		FileInputStream fin = new FileInputStream("C:\\hackathon\\som_teste.wav");
+		@SuppressWarnings("resource")
+		FileInputStream fin = new FileInputStream(audioPath);
 		byte[] buffer = new byte[8000];
 		int len = -1;
 		while ((len = fin.read(buffer)) >= 0) {
 			out.write(buffer, 0, len);
 		}
-
+		
 		// Recupera o resultado do reconhecimento
 		BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 		String line = null;
+		StringBuilder builder = new StringBuilder();
 
 		while ((line = in.readLine()) != null) {
-			System.out.println(line);
-		}	*/	
+			builder.append(line);
+		}
+				
+		String jsonResult = builder.toString();
+		if(recognized(jsonResult)){
+			return getText(jsonResult);
+		} 
+		
+		return SORRY_TEXT;
+	}
+	
+	/**
+	 * @param responseJson
+	 * @return
+	 */
+	private String getText(String responseJson) {
+		ObjectMapper objectMapper = new ObjectMapper();
+		JsonNode rootNode;
+		
+		try {
+			rootNode = objectMapper.readTree(new ByteArrayInputStream(responseJson.getBytes("UTF-8")));
+			JsonNode contextNode = rootNode.path("alternatives");
+			
+			if(contextNode != null){
+				
+				Iterator<JsonNode> it = contextNode.iterator();
+				while (it.hasNext()) {
+					ObjectNode foundItem = (ObjectNode)it.next();
+					JsonNode scoreNode = foundItem.get("score");
+					
+					if(scoreNode != null){
+						String score = scoreNode.toString().replaceAll("\"", "");
+						
+						if(score.equals(BEST_SCORE)){
+							JsonNode textNode = foundItem.get("text");
+							String text = textNode.toString().replaceAll("\"", "");
+							return text;
+						}
+					}
+				}				
+				return SORRY_TEXT;
+			}
+
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return "Desculpe, não entendi.";
+	}
+	
+	/**
+	 * @param responseJson
+	 * @return
+	 */
+	private boolean recognized(String responseJson) {
+		ObjectMapper objectMapper = new ObjectMapper();
+		JsonNode rootNode;
+		
+		try {
+			rootNode = objectMapper.readTree(new ByteArrayInputStream(responseJson.getBytes("UTF-8")));
+			JsonNode contextNode = rootNode.path("result-status");
+			
+			if(contextNode != null){
+				String result = contextNode.toString().replaceAll("\"", "");
+				if(RECOGNIZED.equals(result)){
+					return true;
+				}
+			}
+
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 	
 	/**
@@ -105,7 +195,7 @@ public class Speech {
 	 * @throws Exception
 	 */
 	public void toAudio(String text) throws Exception{
-		/*String authString = new String(Base64.getEncoder().encode("hackathon:1234".getBytes()));
+		String authString = new String(Base64.getEncoder().encode("hackathon:1234".getBytes()));
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("?text=").append(URLEncoder.encode(text, "UTF-8")).append("&voice=rosana-highquality");
@@ -123,7 +213,7 @@ public class Speech {
 		String line = null;
 		while ((line = in.readLine()) != null) {
 			response += line;
-		}
+		}		
 		
 		int begin = response.indexOf("<url>");
 		
@@ -142,7 +232,7 @@ public class Speech {
 
 		// play the audio synchronously
 		playSoundStream(conn.getInputStream());
-		System.out.println("Tocou");*/
+		System.out.println("Tocou");
 	}
 
     /**
@@ -151,12 +241,14 @@ public class Speech {
      * @throws Exception
      */
     public static void main3(String[] args) throws Exception {
-    	String text = "Boa Noite, posso ajudar?";
-    	
+    	    	
     	Speech speech = new Speech();
+    	
+    	String text = "Boa Noite, posso ajudar?";
     	//speech.toAudio(text);
     	
-    	speech.toText("bla");
-		
+    	String audioPath = "c:\\hackathon\\som_teste.wav";
+    	String textResult = speech.toText(audioPath);	
+    	System.out.println("Texto retornado: " + textResult);
 	}
 }

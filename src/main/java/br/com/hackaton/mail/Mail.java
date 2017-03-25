@@ -2,10 +2,6 @@ package br.com.hackaton.mail;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 import javax.activation.DataHandler;
@@ -30,7 +26,7 @@ public class Mail {
 	 * @param fileContent
 	 * @throws Exception
 	 */
-	public void send(String to, String attachment) throws Exception {
+	public void send(String user, String userMail, String attachment) throws Exception {
 		
 		String from = "ac885565a7-a9d626@inbox.mailtrap.io";
 		
@@ -53,11 +49,11 @@ public class Mail {
 			Message message = new MimeMessage(session);
      		message.setFrom(new InternetAddress(from));
 
-	    	message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-			message.setSubject("Testing Subject");
+	    	message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(userMail));
+			message.setSubject("HelpDesk - CPqD");
 
 			BodyPart messageBodyPart = new MimeBodyPart();
-			messageBodyPart.setText("This is message body");
+			messageBodyPart.setText("Olá " + user + ", você está recebendo uma cópia da conversa do nosso atendimento. Obrigado");
 
 			Multipart multipart = new MimeMultipart();
 			multipart.addBodyPart(messageBodyPart);
@@ -67,7 +63,7 @@ public class Mail {
 			
 			File file = File.createTempFile("chat", ".txt");					      
 		    FileWriter fileWriter = new FileWriter(file);  
-		    fileWriter.write("conversa");
+		    fileWriter.write(attachment);
 		    fileWriter.close();  
 			
 			DataSource source = new FileDataSource(file.getPath());
