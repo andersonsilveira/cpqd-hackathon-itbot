@@ -4,24 +4,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.activation.FileDataSource;
-import javax.mail.BodyPart;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
 import javax.naming.AuthenticationException;
 
 import org.apache.http.HttpEntity;
@@ -40,14 +26,18 @@ import com.atlassian.jira.rest.client.domain.BasicIssue;
 import com.atlassian.jira.rest.client.domain.Issue;
 import com.atlassian.jira.rest.client.domain.SearchResult;
 import com.atlassian.jira.rest.client.domain.User;
+import com.atlassian.jira.rest.client.domain.input.IssueInputBuilder;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.atlassian.util.concurrent.Promise;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.core.util.Base64;
 
-
+/**
+ *
+ */
 public class JiraService {
 	
    private static final String JIRA_URL = "https://jira.cpqd.com.br";
@@ -56,27 +46,55 @@ public class JiraService {
    private String username;
    private String password;
    
-   JiraService(String username, String password){
-	   this.setUsername(username);
-	   this.setPassword(password);
-   }  
- 
+	/**
+	 * @param username
+	 * @param password
+	 */
+	JiraService(String username, String password) {
+		this.setUsername(username);
+		this.setPassword(password);
+	} 
 	
-	public String createIssue(String data) throws AuthenticationException, ClientHandlerException {
+	/**
+	 * @param attachment
+	 * @return
+	 * @throws AuthenticationException
+	 * @throws ClientHandlerException
+	 * @throws URISyntaxException
+	 * @throws IOException
+	 */
+	public String createIssue(String attachment) throws AuthenticationException, ClientHandlerException, URISyntaxException, IOException {
 	    
-		String url = JIRA_URL + CREATE_ISSUE;
-		String auth = getEncodedCredentials();
+		JiraRestClientFactory factory = new AsynchronousJiraRestClientFactory();
+	    URI uri = new URI(JIRA_URL);
+
+		JiraRestClient client = factory.createWithBasicHttpAuthentication(uri, this.getUsername(), this.getPassword());				
+		IssueRestClient issueClient = client.getIssueClient();
+
+		//46 = Incidente
+		IssueInputBuilder issueBuilder = new IssueInputBuilder("HACK", new Long(46));
+		issueBuilder.setDescription("issue description");
+		issueBuilder.setSummary("issue summary");	    
 		
-		Client client = Client.create();
-	    WebResource webResource = client.resource(url);
-	    ClientResponse response = webResource.header("Authorization", "Basic " + auth).type("application/json").accept("application/json").post(ClientResponse.class, data);
-	    int statusCode = response.getStatus();
-	    if (statusCode == 401) {
-	        throw new AuthenticationException("Invalid Username or Password");
-	    }
-	    return response.getEntity(String.class);
-	}
+		Promise<BasicIssue> promise = issueClient.createIssue(issueBuilder.build());	
+		BasicIssue bi = promise.claim();
+		
+		System.out.println(bi.getKey());
+		
+		if(attachment != null){
+			addAttachmentToIssue(bi.getKey(), attachment);
+		}
+		
+		return bi.getKey();		
+	}	
 	
+	/**
+	 * Anexa um arquivo no jira
+	 * @param issueKey
+	 * @param fileContent
+	 * @return
+	 * @throws IOException
+	 */
 	public boolean addAttachmentToIssue(String issueKey, String fileContent) throws IOException{
 		 
 	    CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -85,17 +103,13 @@ public class JiraService {
 	    httppost.setHeader("X-Atlassian-Token", "nocheck");
 	    httppost.setHeader("Authorization", "Basic "+ getEncodedCredentials());
 	    
-	    //https://jira.cpqd.com.br/rest/api/2/issue/HACK-13/attachments
-	     
 		File file = File.createTempFile("chat", ".txt");					      
 	    FileWriter fileWriter = new FileWriter(file);  
 	    fileWriter.write(fileContent);
 	    fileWriter.close();  
 	    		
-	    FileBody fileBody = new FileBody(file);
-	     
-	    HttpEntity entity = MultipartEntityBuilder.create().addPart("file", fileBody).build();
-	     
+	    FileBody fileBody = new FileBody(file);	     
+	    HttpEntity entity = MultipartEntityBuilder.create().addPart("file", fileBody).build();	     
 	    httppost.setEntity(entity);
 	     
 	    CloseableHttpResponse response;
@@ -106,19 +120,27 @@ public class JiraService {
 	        httpclient.close();
 	    }
 	     
-	    System.out.println(response.getStatusLine());
-	    if(response.getStatusLine().getStatusCode() == 200)
+	    if(response.getStatusLine().getStatusCode() == 200){
 	        return true;
-	    else
+	    } else {
 	        return false;
-	 
+	    }	 
 	}
 	
+	/**
+	 * @return
+	 */
 	private String getEncodedCredentials() {
-		return "ZGllZ29jOipENjY3ODEyYyo=";
-		//return new String(Base64.encode(this.getUsername() + ":" + this.getPassword()));
+		return new String(Base64.encode(this.getUsername() + ":" + this.getPassword()));
 	}
 
+	/**
+	 * Valida se o usuario existe no cadastro do jira
+	 * @param username
+	 * @param password
+	 * @throws AuthenticationException
+	 * @throws ClientHandlerException
+	 */
 	public void validateUser(String username, String password) throws AuthenticationException, ClientHandlerException {
 	    
 		String auth = getEncodedCredentials();
@@ -128,13 +150,16 @@ public class JiraService {
 	    ClientResponse response = webResource.header("Authorization", "Basic " + auth).type("application/json").accept("application/json").get(ClientResponse.class);
 	    int statusCode = response.getStatus();
 	    
-	    System.out.println("Status Code: " + statusCode);
-	   
 	    if (statusCode == 401) {
 	        throw new AuthenticationException("Invalid Username or Password");
 	    }	    
 	}  
 	
+	/**
+	 * Retorna o email do usuario cadastro no jira
+	 * @return
+	 * @throws Exception
+	 */
 	public String getUserMail() throws Exception {
 	    
         JiraRestClientFactory factory = new AsynchronousJiraRestClientFactory();
@@ -146,11 +171,15 @@ public class JiraService {
 		
 		if(jiraUser != null){
 			return jiraUser.getEmailAddress();
-		}
-				
+		}				
 		return "";
 	}
 	 
+    /**
+     * Retorna todos os jiras do usuario no projeto HACK
+     * @return
+     * @throws Exception
+     */
     public List<Issue> getUserIssues() throws Exception {
 	    
         JiraRestClientFactory factory = new AsynchronousJiraRestClientFactory();
@@ -159,7 +188,7 @@ public class JiraService {
 		JiraRestClient client = factory.createWithBasicHttpAuthentication(uri, this.getUsername(), this.getPassword());				
 		
 		SearchRestClient issueSearch = client.getSearchClient();
-		Promise<SearchResult> result = issueSearch.searchJql("reporter = " + this.getUsername() + "S AND project = HACK");
+		Promise<SearchResult> result = issueSearch.searchJql("reporter = " + this.getUsername() + " AND project = HACK");
 		
 		SearchResult sr = result.claim();		
 		Iterable<BasicIssue> basicIssues = sr.getIssues();
@@ -172,72 +201,13 @@ public class JiraService {
 			Promise<Issue> promiseIssue = issueClient.getIssue(i.getKey());
 			Issue issue = promiseIssue.claim();
 					
-			System.out.println(i.getKey());
-			System.out.println(i.getSelf());
+			System.out.println(issue.getKey());
+			System.out.println(issue.getSelf());
 			System.out.println(issue.getStatus().getName());
 			
 			issues.add(issue);
-		}
-		
+		}		
 		return issues;
-	}
-	
-	public void sendMail(String fileContent) throws Exception {
-		//String to = this.getUserMail();
-		String to = "diegoconstantini@hotmail.com";
-		String from = "ac885565a7-a9d626@inbox.mailtrap.io";
-		
-		Properties props = new Properties();
-		props.put("mail.smtp.starttls.enable", "true");
-		props.put("mail.smtp.auth", "true");	
-		props.put("mail.smtp.host", "smtp.mailtrap.io");
-		props.put("mail.smtp.port", "25");
-		
-		final String username = "a52f59b3a5589b";
-		final String password = "c5948e3fe67c47";
-		
-		Session session = Session.getInstance(props, new javax.mail.Authenticator() {
-			protected PasswordAuthentication getPasswordAuthentication() {
-				return new PasswordAuthentication(username, password);
-			}
-		});
-
-		try {
-			Message message = new MimeMessage(session);
-     		message.setFrom(new InternetAddress(from));
-
-	    	message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-
-			message.setSubject("Testing Subject");
-
-			BodyPart messageBodyPart = new MimeBodyPart();
-			messageBodyPart.setText("This is message body");
-
-			Multipart multipart = new MimeMultipart();
-			multipart.addBodyPart(messageBodyPart);
-
-			// Part two is attachment
-			messageBodyPart = new MimeBodyPart();
-			
-			File file = File.createTempFile("chat", ".txt");					      
-		    FileWriter fileWriter = new FileWriter(file);  
-		    fileWriter.write("conversa");
-		    fileWriter.close();  
-			
-			DataSource source = new FileDataSource(file.getPath());
-			messageBodyPart.setDataHandler(new DataHandler(source));
-			messageBodyPart.setFileName(file.getName());
-			multipart.addBodyPart(messageBodyPart);
-
-			message.setContent(multipart);
-
-			Transport.send(message);
-
-			System.out.println("Sent message successfully....");
-
-		} catch (MessagingException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	/**
@@ -268,31 +238,32 @@ public class JiraService {
 		this.password = password;
 	}
 	
-	 public static void main2(String[] args) throws Exception {
-			
-			String auth = "ZGllZ29jOipENjY3ODEyYyo="; //(diegoc user + senha encodado)
-			String data = "{\"fields\":{\"project\":{\"key\":\"HACK\"},\"summary\":\"REST Test\",\"issuetype\":{\"name\":\"Incidente\"}}}";
-			//System.out.println(data);
-				
-			//String response = createIssue(auth, url, data);
-			//validateUser("bla", "bla");
-			
-			JiraService app = new JiraService("bla", "bla");
-			//app.addAttachmentToIssue("HACK-13", "Conversa legal");
-			//app.sendMail("bla");
-			
-			
-			app.getUserIssues();
-						
-			//String response = app.getUserMail();
-			
-			//String response = "{\"id\":\"1840987\",\"key\":\"HACK-13\",\"self\":\"https://jira.cpqd.com.br/rest/api/2/issue/1840987\"}";
-			//System.out.println(response);
-			
-			//JSONArray projectArray = new JSONArray(response);
-			//for (int i = 0; i < projectArray.length(); i++) {
-			  //  JSONObject proj = projectArray.getJSONObject(i);
-			    //System.out.println("Key:"+proj.getString("key")+", Name:"+proj.getString("name"));
-			//}       	      
-		}
+//	 /**
+//	  * Metodo main para testes
+//	 * @param args
+//	 * @throws Exception
+//	 */
+//	public static void main(String[] args) throws Exception {
+//			
+//			String data = "{\"fields\":{\"project\":{\"key\":\"HACK\"},\"summary\":\"REST Test\",\"issuetype\":{\"name\":\"Incidente\"}}}";
+//		
+//			//String response = createIssue(auth, url, data);
+//			//validateUser("bla", "bla");
+//			
+//			JiraService app = new JiraService("user", "*password*");
+//			//app.addAttachmentToIssue("HACK-13", "Conversa legal");
+//			//app.sendMail("bla");			
+//			
+//			app.getUserIssues();
+//						
+//			//String response = app.getUserMail();			
+//			//String response = "{\"id\":\"1840987\",\"key\":\"HACK-13\",\"self\":\"https://jira.cpqd.com.br/rest/api/2/issue/1840987\"}";
+//			//System.out.println(response);
+//			
+//			//JSONArray projectArray = new JSONArray(response);
+//			//for (int i = 0; i < projectArray.length(); i++) {
+//			  //  JSONObject proj = projectArray.getJSONObject(i);
+//			    //System.out.println("Key:"+proj.getString("key")+", Name:"+proj.getString("name"));
+//			//}       	      
+//		}
 }
