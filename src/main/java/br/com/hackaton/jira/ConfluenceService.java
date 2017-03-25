@@ -1,14 +1,10 @@
 package br.com.hackaton.jira;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.naming.AuthenticationException;
-
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONTokener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -44,7 +40,7 @@ public class ConfluenceService {
 		List<ConfluenceResponse> responseItems = new ArrayList<ConfluenceResponse>();
 
 		try {
-			rootNode = objectMapper.readTree(responseJson.getBytes());
+			rootNode = objectMapper.readTree(new ByteArrayInputStream(responseJson.getBytes("UTF-8")));
 			JsonNode contextNode = rootNode.path("results");
 			Iterator it = contextNode.iterator();
 			while (it.hasNext()) {

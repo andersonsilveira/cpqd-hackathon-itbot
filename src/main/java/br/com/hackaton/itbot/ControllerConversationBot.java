@@ -1,9 +1,5 @@
 package br.com.hackaton.itbot;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-
-
+import br.com.hackaton.jira.ConfluenceResponse;
+import br.com.hackaton.jira.ConfluenceService;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -22,9 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.watson.developer_cloud.conversation.v1.ConversationService;
 import com.ibm.watson.developer_cloud.conversation.v1.model.MessageRequest;
 import com.ibm.watson.developer_cloud.conversation.v1.model.MessageResponse;
-
-import br.com.hackaton.jira.ConfluenceResponse;
-import br.com.hackaton.jira.ConfluenceService;
 
 @Controller
 @RequestMapping("/conversation")
@@ -38,10 +31,10 @@ public class ControllerConversationBot {
 		JsonNode rootNode;
 		try {
 			System.out.println(intentContent);
-			String split = intentContent.substring(5,intentContent.length()-2);
+			/*String split = intentContent.substring(5,intentContent.length()-2);
 			String jsonStr = split.replaceAll("\\\\", "");
-			System.out.println(jsonStr);
-			rootNode = objectMapper.readTree(jsonStr.getBytes());
+			System.out.println(jsonStr);*/
+			rootNode = objectMapper.readTree(intentContent.getBytes());
 			JsonNode contextNode = rootNode.path("context");
 			String text = rootNode.path("input").path("text").textValue();
 			MessageRequest newMessage = null;
@@ -84,7 +77,7 @@ public class ControllerConversationBot {
 
 	private List<ConfluenceResponse> getContentConfluence(MessageResponse response) {
 
-		String topico = response.getContext().get("topico_ctx").toString();
+		//String topico = response.getContext().get("topico_ctx").toString();
 		String ferramenta = (String) response.getContext().get("ferramenta_ctx");
 		String problema = (String) response.getInput().get("text");
 
