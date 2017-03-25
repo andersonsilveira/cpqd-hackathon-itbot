@@ -1,4 +1,4 @@
-package src.main.java.br.com.hackaton.form;
+package br.com.hackaton.form;
 
 public class Form {
 	

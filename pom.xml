@@ -68,6 +68,7 @@
     		<artifactId>mail</artifactId>
     		<version>1.4</version>
 		</dependency>
+		<dependency>
 			<groupId>org.elasticsearch</groupId>
 			<artifactId>elasticsearch</artifactId>
 			<version>2.4.0</version>

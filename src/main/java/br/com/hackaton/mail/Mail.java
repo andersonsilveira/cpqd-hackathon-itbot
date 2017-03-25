@@ -1,4 +1,4 @@
-package src.main.java.br.com.hackaton.mail;
+package br.com.hackaton.mail;
 
 import java.io.File;
 import java.io.FileWriter;

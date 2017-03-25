@@ -1,8 +1,8 @@
-package src.main.java.br.com.hackaton.speech;
+package br.com.hackaton.speech;
 
 import java.io.*;
 import java.net.*;
-import java.util.Base64;
+
 import javax.net.ssl.HttpsURLConnection;
 
 import javax.sound.sampled.AudioFormat;
@@ -69,7 +69,7 @@ public class Speech {
 	 */
 	public void toText(String audioPath) throws Exception{
 		
-		URL request = new URL("https://speechweb.cpqd.com.br/spider/recognize");
+	/*	URL request = new URL("https://speechweb.cpqd.com.br/spider/recognize");
 		HttpsURLConnection conn = (HttpsURLConnection) request.openConnection();
 		conn.setRequestMethod("POST");
 		conn.setDoOutput(true);
@@ -96,7 +96,7 @@ public class Speech {
 
 		while ((line = in.readLine()) != null) {
 			System.out.println(line);
-		}		
+		}	*/	
 	}
 	
 	/**
@@ -105,7 +105,7 @@ public class Speech {
 	 * @throws Exception
 	 */
 	public void toAudio(String text) throws Exception{
-		String authString = new String(Base64.getEncoder().encode("hackathon:1234".getBytes()));
+		/*String authString = new String(Base64.getEncoder().encode("hackathon:1234".getBytes()));
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("?text=").append(URLEncoder.encode(text, "UTF-8")).append("&voice=rosana-highquality");
@@ -142,7 +142,7 @@ public class Speech {
 
 		// play the audio synchronously
 		playSoundStream(conn.getInputStream());
-		System.out.println("Tocou");
+		System.out.println("Tocou");*/
 	}
 
     /**
