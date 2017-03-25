@@ -173,17 +173,17 @@ public class ControllerConversationBot {
 	}
 	
 	@RequestMapping(value="/login",method = RequestMethod.GET)
-	public @ResponseBody String login(@RequestParam(name="usuario") String user, @RequestParam(name="senha") String pwd){
+	public @ResponseBody String login(@RequestParam(name="usuario") String user, @RequestParam(name="senha") String pwd) throws AuthenticationException{
 	    JiraService jiraService = new JiraService(user, pwd);
 	    try {
 		
 		String auth = jiraService.validateUser(user, pwd);
 		userConversation.put(user, pwd);
-		return auth;
+		return "200";
 	    } catch (AuthenticationException e) {
-		return "401";
+		throw e;
 	    } catch (ClientHandlerException e) {
-		return "402";
+		throw e;
 	    }
 	 
 	    
